@@ -1,0 +1,25 @@
+# Firebase deploy から除外したいファイル・フォルダ
+
+# Node.js 関連
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# TypeScript ビルドファイル
+*.tsbuildinfo
+*.js.map
+
+# ローカル環境変数
+.env
+.env.local
+*.local
+
+# Firebase secret key（絶対に含めないように）
+serviceAccountKey.json
+
+# ビルド・一時ファイル
+/build
+/dist
+/.next
+/out

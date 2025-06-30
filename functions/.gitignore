@@ -1,0 +1,22 @@
+# Firebase secrets
+serviceAccountKey.json
+
+# Firebase CLI logs
+firebase-debug.log
+
+# Node modules (just in case)
+node_modules/
+
+# Compiled output
+lib/
+dist/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Env files (もし使うなら)
+.env
+.env.*
+
+# Mac固有のファイル
+.DS_Store

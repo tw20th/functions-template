@@ -1,0 +1,38 @@
+[
+  {
+    "label": "大容量モデル",
+    "conditions": [{ "field": "capacity", "operator": ">", "value": 20000 }],
+    "tags": ["大容量", "モバイルバッテリー"]
+  },
+  {
+    "label": "軽量モデル",
+    "conditions": [{ "field": "weight", "operator": "<", "value": 200 }],
+    "tags": ["軽い", "持ち運びに便利"]
+  },
+  {
+    "label": "急速充電対応",
+    "conditions": [{ "field": "outputPower", "operator": ">=", "value": 18 }],
+    "tags": ["急速充電", "PD対応"]
+  },
+  {
+    "label": "Type-C対応",
+    "conditions": [{ "field": "hasTypeC", "operator": "==", "value": true }],
+    "tags": ["Type-C対応", "最新端子"]
+  },
+  {
+    "label": "安くて人気",
+    "conditions": [
+      { "field": "itemPrice", "operator": "<", "value": 2500 },
+      { "field": "reviewCount", "operator": ">", "value": 1000 }
+    ],
+    "tags": ["安い", "レビュー多数", "コスパ"]
+  },
+  {
+    "label": "薄型タイプ",
+    "conditions": [
+      { "field": "weight", "operator": "<", "value": 150 },
+      { "field": "capacity", "operator": "<", "value": 10000 }
+    ],
+    "tags": ["薄型", "軽量", "ポケットサイズ"]
+  }
+]
