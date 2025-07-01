@@ -8,7 +8,7 @@ firebase-debug.log
 node_modules/
 
 # Compiled output
-lib/
+
 dist/
 
 # TypeScript build info

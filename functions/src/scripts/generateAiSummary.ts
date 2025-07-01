@@ -11,16 +11,20 @@ initializeApp({
 });
 
 const db = getFirestore();
-
-// OpenAI 初期化
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export const generateAiSummary = async () => {
-  const snapshot = await db.collection("monitoredItems").get();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const snapshot = await db
+    .collection("monitoredItems")
+    .where("updatedAt", ">=", startOfToday.toISOString())
+    .get();
 
   const batch = db.batch();
+  let processedCount = 0;
+
   for (const doc of snapshot.docs) {
     const data = doc.data();
 
@@ -28,7 +32,6 @@ export const generateAiSummary = async () => {
     if (data.aiSummary) continue;
 
     const { displayName, featureHighlights = [], tags = [] } = data;
-
     const productName = displayName || data.productName || "この商品";
 
     const prompt = `次の特徴を持つモバイルバッテリー「${productName}」について、簡潔でわかりやすい魅力を説明してください。\n\n特徴:\n- ${featureHighlights.join(
@@ -36,7 +39,7 @@ export const generateAiSummary = async () => {
     )}\n\nタグ: ${tags.join(", ")}\n\n要約:`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // ← ここを変更
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -48,12 +51,16 @@ export const generateAiSummary = async () => {
     });
 
     const aiSummary = completion.choices[0].message?.content?.trim() ?? "";
-
     batch.update(doc.ref, { aiSummary });
+    processedCount++;
   }
 
-  await batch.commit();
-  console.log("✅ aiSummary を生成して保存しました");
+  if (processedCount > 0) {
+    await batch.commit();
+    console.log(`✅ ${processedCount} 件の aiSummary を生成して保存しました`);
+  } else {
+    console.log("🟡 処理対象がありませんでした（すでに全て要約済み）");
+  }
 };
 
 if (require.main === module) {

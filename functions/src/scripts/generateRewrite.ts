@@ -1,12 +1,10 @@
 // functions/src/scripts/generateRewrite.ts
-import { db } from "../lib/firebaseAdmin";
-import { generateRewrite } from "../rewrite/generateRewrite";
 
-export const generateRewriteForLowScoreBlogs = async () => {
-  const blogsSnapshot = await db
-    .collection("blogs")
-    .where("score", "<", 80)
-    .get();
+import { db } from "../lib/firebaseAdmin";
+import { generateRewrite as generateRewriteFn } from "../rewrite/generateRewrite"; // ✅ 関数名を変更してインポート
+
+export const generateRewrite = async () => {
+  const blogsSnapshot = await db.collection("blogs").where("score", "<", 80).get();
 
   const lowScoreBlogs = blogsSnapshot.docs;
 
@@ -16,10 +14,7 @@ export const generateRewriteForLowScoreBlogs = async () => {
   }
 
   const shuffle = <T>(arr: T[]) => arr.sort(() => 0.5 - Math.random());
-  const selected = shuffle(lowScoreBlogs).slice(
-    0,
-    Math.min(2, lowScoreBlogs.length)
-  );
+  const selected = shuffle(lowScoreBlogs).slice(0, Math.min(2, lowScoreBlogs.length));
 
   for (const blogDoc of selected) {
     const slug = blogDoc.id;
@@ -34,19 +29,13 @@ export const generateRewriteForLowScoreBlogs = async () => {
       productName,
     } = data;
 
-    if (
-      !content ||
-      !suggestedTitle ||
-      !suggestedOutline ||
-      !suggestedRewritePrompt ||
-      !summary
-    ) {
+    if (!content || !suggestedTitle || !suggestedOutline || !suggestedRewritePrompt || !summary) {
       console.warn(`⚠️ Skip ${slug}: missing required analysis data`);
       continue;
     }
 
     try {
-      const rewritten = await generateRewrite({
+      const rewritten = await generateRewriteFn({
         slug,
         originalContent: content,
         suggestedTitle,
@@ -70,5 +59,3 @@ export const generateRewriteForLowScoreBlogs = async () => {
 
   console.log("✨ Rewrite process completed.");
 };
-
-generateRewriteForLowScoreBlogs();

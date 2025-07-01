@@ -12,7 +12,10 @@ const app = initializeApp({
 const db = getFirestore(app);
 
 export const filterAndSaveItems = async (): Promise<void> => {
-  const snapshot = await db.collection("rakutenItems").get();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const snapshot = await db.collection("rakutenItems").where("createdAt", ">=", startOfToday).get();
   const now = new Date();
   const batch = db.batch();
 
@@ -33,10 +36,7 @@ export const filterAndSaveItems = async (): Promise<void> => {
 
     const priceHistory = rawHistory.filter(
       (entry: unknown): entry is { date: string; price: number } =>
-        typeof entry === "object" &&
-        entry !== null &&
-        "date" in entry &&
-        "price" in entry
+        typeof entry === "object" && entry !== null && "date" in entry && "price" in entry
     );
 
     const newPrice = data.itemPrice ?? data.price ?? 0;
@@ -70,9 +70,10 @@ export const filterAndSaveItems = async (): Promise<void> => {
         featureHighlights,
         displayName: data.displayName ?? "",
         shortTitle: data.shortTitle ?? "",
+        weight: data.weight ?? null, // ← ✅ ここを追加！
         updatedAt: now.toISOString(),
       },
-      { merge: true } // 🔥←ここがポイント！
+      { merge: true }
     );
   }
 
@@ -81,7 +82,7 @@ export const filterAndSaveItems = async (): Promise<void> => {
 };
 
 if (require.main === module) {
-  filterAndSaveItems().catch((e) => {
+  filterAndSaveItems().catch(e => {
     console.error("❌ エラー:", e);
     process.exit(1);
   });

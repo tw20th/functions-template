@@ -2,6 +2,7 @@ import "dotenv/config";
 import axios from "axios";
 import { db } from "../lib/firebaseAdmin";
 import { Timestamp } from "firebase-admin/firestore";
+import { keywordsByDay } from "../config/keywordsByDay";
 
 // --- APIキー設定 ---
 const RAKUTEN_APP_ID = process.env.RAKUTEN_APP_ID ?? "";
@@ -25,7 +26,7 @@ interface RakutenItem {
   shortTitle?: string;
 }
 
-// --- スペック抽出関数（description + itemName 対応）---
+// --- スペック抽出関数 ---
 const parseCapacity = (text: string): number | null => {
   const match = text.match(/(\d{4,6})\s*(mAh|ｍＡｈ|mah|ｍａｈ)/i);
   return match ? parseInt(match[1], 10) : null;
@@ -49,13 +50,9 @@ const parseHasTypeC = (text: string): boolean => {
   return /(type[\s\-]?c|usb[\s\-]?c)/i.test(text);
 };
 
-// --- 表示用タイトル生成関数 ---
 const generateDisplayName = (itemName: string): string => {
   return itemName
-    .replace(
-      /(【.*?】|＼.*?／|★.*?％|！|!|最安|送料無料|レビュー特典|ポイント.*?)/g,
-      ""
-    )
+    .replace(/(【.*?】|＼.*?／|★.*?％|！|!|最安|送料無料|レビュー特典|ポイント.*?)/g, "")
     .trim();
 };
 
@@ -65,8 +62,9 @@ const generateShortTitle = (itemName: string): string => {
 };
 
 // --- メイン処理 ---
-const fetchAndSaveWithSpecs = async () => {
-  const keyword = "モバイルバッテリー";
+export const fetchAndSaveWithSpecs = async () => {
+  const today = new Date().getDay(); // 0（日）〜 6（土）
+  const keyword = keywordsByDay[today] ?? "モバイルバッテリー";
   const hits = 30;
 
   const response = await axios.get<{ Items: any[] }>(
@@ -78,6 +76,7 @@ const fetchAndSaveWithSpecs = async () => {
         keyword,
         hits,
         format: "json",
+        sort: "-reviewCount",
       },
     }
   );
@@ -87,12 +86,6 @@ const fetchAndSaveWithSpecs = async () => {
     const description = item.itemCaption ?? "";
     const itemName = item.itemName ?? "";
     const text = `${itemName} ${description}`;
-
-    const capacity = parseCapacity(text);
-    const outputPower = parseOutputPower(text);
-    const hasTypeC = parseHasTypeC(text);
-    const displayName = generateDisplayName(itemName);
-    const shortTitle = generateShortTitle(itemName);
 
     return {
       itemCode: item.itemCode,
@@ -104,18 +97,39 @@ const fetchAndSaveWithSpecs = async () => {
       description,
       reviewAverage: Number(item.reviewAverage) || 0,
       reviewCount: Number(item.reviewCount) || 0,
-      capacity,
-      outputPower,
-      hasTypeC,
-      displayName,
-      shortTitle,
+      capacity: parseCapacity(text),
+      outputPower: parseOutputPower(text),
+      hasTypeC: parseHasTypeC(text),
+      displayName: generateDisplayName(itemName),
+      shortTitle: generateShortTitle(itemName),
     };
   });
+
+  const itemCodes = items.map(item => item.itemCode);
+
+  // Firestoreにすでにある itemCode を取得
+  const chunks = [];
+  for (let i = 0; i < itemCodes.length; i += 10) {
+    chunks.push(itemCodes.slice(i, i + 10));
+  }
+
+  const existingItemCodes = new Set<string>();
+  for (const chunk of chunks) {
+    const snapshot = await db.collection("rakutenItems").where("itemCode", "in", chunk).get();
+    snapshot.docs.forEach(doc => existingItemCodes.add(doc.id));
+  }
+
+  const newItems = items.filter(item => !existingItemCodes.has(item.itemCode)).slice(0, 30);
+
+  if (newItems.length === 0) {
+    console.log(`🟡 No new items found for keyword: ${keyword}`);
+    return;
+  }
 
   const now = Timestamp.now();
   const batch = db.batch();
 
-  for (const item of items) {
+  for (const item of newItems) {
     const ref = db.collection("rakutenItems").doc(item.itemCode);
     batch.set(ref, {
       ...item,
@@ -124,9 +138,12 @@ const fetchAndSaveWithSpecs = async () => {
   }
 
   await batch.commit();
-  console.log(
-    `✅ ${items.length} items saved to rakutenItems (with specs & titles)`
-  );
+  console.log(`✅ ${newItems.length} new items saved to rakutenItems (keyword: ${keyword})`);
 };
 
-fetchAndSaveWithSpecs().catch(console.error);
+// CLIで直接実行された場合
+if (require.main === module) {
+  fetchAndSaveWithSpecs().catch(err => {
+    console.error("❌ Error in fetchAndSaveWithSpecs:", err);
+  });
+}

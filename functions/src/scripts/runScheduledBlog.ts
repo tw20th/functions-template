@@ -1,39 +1,32 @@
 // functions/src/scripts/runScheduledBlog.ts
 import { db } from "../lib/firebaseAdmin";
 import { generateBlogFromItem } from "./generateBlogFromItem";
+import * as logger from "firebase-functions/logger";
 
-const runScheduledBlogHandler = async () => {
-  console.log("⏰ scheduledBlogHandler started");
+export const runScheduledBlog = async (label: "morning" | "noon") => {
+  logger.log(`⏰ runScheduledBlog (${label}) started`);
 
-  // 既に投稿済みの sourceItemCode を取得
-  const blogSnapshot = await db.collection("blogs").get();
-  const postedCodes = blogSnapshot.docs.map((doc) => doc.data().sourceItemCode);
+  const postedCodesSnapshot = await db.collection("blogs").get();
+  const postedCodes = postedCodesSnapshot.docs.map(doc => doc.data().sourceItemCode);
 
-  // monitoredItems から未投稿の商品を2件取得（Firestore の not-in は最大10件まで）
-  const candidateSnapshot = await db
-    .collection("monitoredItems")
-    .where("sourceItemCode", "not-in", postedCodes.slice(0, 10))
-    .limit(1)
-    .get();
+  const snapshot = await db.collection("monitoredItems").orderBy("sourceItemCode").get();
 
-  if (candidateSnapshot.empty) {
-    console.log("🚫 未投稿の商品が見つかりませんでした");
+  const items = snapshot.docs
+    .map(doc => doc.data())
+    .filter(item => !postedCodes.includes(item.sourceItemCode))
+    .slice(0, 1); // 1件だけ投稿
+
+  if (items.length === 0) {
+    logger.log("🚫 未投稿の商品が見つかりませんでした");
     return;
   }
 
-  const items = candidateSnapshot.docs.map((doc) => doc.data());
-
-  for (const item of items) {
-    try {
-      console.log(`🟢 generate blog for: ${item.sourceItemCode}`);
-      await generateBlogFromItem(item);
-    } catch (err) {
-      console.error("❌ Error generating blog", err);
-    }
+  const item = items[0];
+  try {
+    logger.log(`🟢 generate blog for: ${item.sourceItemCode}`);
+    await generateBlogFromItem(item);
+    logger.log("✅ Blog generation complete");
+  } catch (err) {
+    logger.error("❌ Error generating blog", err);
   }
-
-  console.log("✅ scheduledBlogHandler complete");
 };
-
-// 実行
-runScheduledBlogHandler();
