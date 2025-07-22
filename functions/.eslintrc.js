@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const path = require("path");
-/* eslint-enable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 module.exports = {
   root: true,

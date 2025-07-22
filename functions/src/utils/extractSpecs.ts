@@ -21,7 +21,7 @@ function extractOutputPower(text: string): number | undefined {
   }
 
   // ② 電圧/電流表記（例：5V/3A → 15W）
-  const matchVA = text.match(/(\d+(?:\.\d+)?)\s*V\s*[\/×x＊*]\s*(\d+(?:\.\d+)?)\s*A/i);
+  const matchVA = text.match(/(\d+(?:\.\d+)?)\s*V\s*[/×x＊*]\s*(\d+(?:\.\d+)?)\s*A/i);
   if (matchVA) {
     const volts = parseFloat(matchVA[1]);
     const amps = parseFloat(matchVA[2]);

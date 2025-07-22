@@ -2,22 +2,30 @@
   {
     "label": "大容量モデル",
     "conditions": [{ "field": "capacity", "operator": ">", "value": 20000 }],
-    "tags": ["大容量", "モバイルバッテリー"]
+    "tags": ["大容量", "モバイルバッテリー"],
+    "color": "#10b981",
+    "icon": "BatteryCharging"
   },
   {
     "label": "軽量モデル",
     "conditions": [{ "field": "weight", "operator": "<", "value": 200 }],
-    "tags": ["軽い", "持ち運びに便利"]
+    "tags": ["軽い", "持ち運びに便利"],
+    "color": "#3b82f6",
+    "icon": "Feather"
   },
   {
     "label": "急速充電対応",
     "conditions": [{ "field": "outputPower", "operator": ">=", "value": 18 }],
-    "tags": ["急速充電", "PD対応"]
+    "tags": ["急速充電", "PD対応"],
+    "color": "#f97316",
+    "icon": "Zap"
   },
   {
     "label": "Type-C対応",
     "conditions": [{ "field": "hasTypeC", "operator": "==", "value": true }],
-    "tags": ["Type-C対応", "最新端子"]
+    "tags": ["Type-C対応", "最新端子"],
+    "color": "#6366f1",
+    "icon": "Cable"
   },
   {
     "label": "安くて人気",
@@ -25,7 +33,9 @@
       { "field": "itemPrice", "operator": "<", "value": 2500 },
       { "field": "reviewCount", "operator": ">", "value": 1000 }
     ],
-    "tags": ["安い", "レビュー多数", "コスパ"]
+    "tags": ["安い", "レビュー多数", "コスパ"],
+    "color": "#facc15",
+    "icon": "Star"
   },
   {
     "label": "薄型タイプ",
@@ -33,6 +43,8 @@
       { "field": "weight", "operator": "<", "value": 150 },
       { "field": "capacity", "operator": "<", "value": 10000 }
     ],
-    "tags": ["薄型", "軽量", "ポケットサイズ"]
+    "tags": ["薄型", "軽量", "ポケットサイズ"],
+    "color": "#94a3b8",
+    "icon": "Layout"
   }
 ]

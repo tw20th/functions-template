@@ -1,9 +1,11 @@
 // functions/src/lib/openai.ts
-import OpenAI from "openai";
+import { Configuration, OpenAIApi } from "openai";
 
-const openai = new OpenAI({
+const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const openai = new OpenAIApi(configuration);
 
 export const generateContentWithOpenAI = async ({
   system,
@@ -12,7 +14,7 @@ export const generateContentWithOpenAI = async ({
   system: string;
   user: string;
 }): Promise<string> => {
-  const res = await openai.chat.completions.create({
+  const res = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: [
       { role: "system", content: system },
@@ -21,5 +23,5 @@ export const generateContentWithOpenAI = async ({
     temperature: 0.7,
   });
 
-  return res.choices[0]?.message.content ?? "";
+  return res.data.choices[0]?.message?.content ?? "";
 };

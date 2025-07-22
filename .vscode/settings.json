@@ -1,7 +1,11 @@
 {
+  // 既存の設定そのままでOK！
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.fixAll.eslint": "explicit"
-  }
+  },
+
+  // 🔽 これが必要！VSCodeが移動時にimport修正する設定
+  "typescript.updateImportsOnFileMove.enabled": "always"
 }

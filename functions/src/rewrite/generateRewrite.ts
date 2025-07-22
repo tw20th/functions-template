@@ -1,22 +1,25 @@
+// functions/src/rewrite/generateRewrite.ts
 import { generateContentWithOpenAI } from "../lib/openai";
 
-type RewriteInput = {
-  slug: string;
+export type RewriteInput = {
   originalContent: string;
   suggestedTitle: string;
   suggestedOutline: string[];
   suggestedRewritePrompt: string;
-  summary: string;
   productName?: string;
+
+  // 将来の拡張用に保持
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  slug?: string;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  summary?: string;
 };
 
 export const generateRewrite = async ({
-  slug,
   originalContent,
   suggestedTitle,
   suggestedOutline,
   suggestedRewritePrompt,
-  summary,
   productName,
 }: RewriteInput): Promise<string> => {
   const systemPrompt = "あなたはSEOとUXに強いプロのWeb編集者です。";
